@@ -37,7 +37,7 @@ fn f<T>(x : T) -> String {
 }
 ```
 
-# TODO
+## TODO
 
 - In the above `f` example, if the inner type variable is also named `T` then it doesn't work. Somehow the outer type variable is leaking in ._. That shouldn't happen.
 - Allow for precedence ordering such that we can fall down to a lower `<D: std::fmt::Debug> D` case in the `f` example. This should be possible with the same trick as we do the default case with (?).
