@@ -1,6 +1,6 @@
 use proc_macro as pm;
-use quote::{quote, quote_spanned};
-use syn::{braced, parse::Parse, parse_macro_input, spanned::Spanned, Expr, Generics, Token, Type};
+use quote::quote;
+use syn::{braced, parse::Parse, parse_macro_input, Expr, Generics, Token, Type};
 
 #[derive(Debug)]
 struct MatchArm {
@@ -75,7 +75,7 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             Type::Infer(_) => {
                 let expr_type = &arm.expr_type;
                 let expr = &arm.expr;
-                arms.extend(quote_spanned! { arm.match_type.span() =>
+                arms.extend(quote! {
                     trait __MatchTypeDefault {
                         fn __match_type_arm(self) -> #expr_type;
                     }
