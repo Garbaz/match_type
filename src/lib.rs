@@ -63,7 +63,7 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
 
         impl<T: __MatchType> __MatchTypeWrapper<T> {
             fn __match_type_arm(self) -> <T as __MatchType>::ExprType {
-                self.0.__match_type_arm()
+                __MatchType::__match_type_arm(self.0)
             }
         }
     };
