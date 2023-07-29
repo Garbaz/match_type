@@ -123,8 +123,8 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
     for (i, arm) in input.match_arms.iter().enumerate() {
         match arm.match_type {
             Type::Infer(_) => {
-                let generics = quote! {<T>}.into();
-                let match_type = quote! {T}.into();
+                let generics = quote! {<__MatchTypeT>}.into();
+                let match_type = quote! {__MatchTypeT}.into();
                 add_arm(
                     i,
                     &parse_macro_input!(generics as Generics),

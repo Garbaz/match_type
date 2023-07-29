@@ -1,55 +1,39 @@
 # Match Type
 
-Expand macro differently depending on type of input expression.
+Match on the type of an expression at compile time `\(^O^)/`.
 
-For example:
+For example the following macro will expand to a different `String` expression depending on what the type of the input expression is:
 
 ```rs
-use match_type::match_type;
+struct A(i64,i32,i16,i8);
+struct B(f64,f32,bool);
 
-macro_rules! m {
+macro_rules! stringify {
     ($e:expr) => {
-        match_type!{
+        match_type!(
             $e {
-                <T> Vec<T> => usize: self.len(),
-                usize => f64: self as f64,
-                f64 => bool: self.is_finite(),
-
+                A => String: "It's an A :O".to_string(),
+                B => String: "B it is ^^".to_string(),
+                <T: Display> T => String: format!("{}", self),
+                <T: Debug> T => String: format!("{:?}", self),
+                _ => String: "<<Sad Monkey :(>>".to_string(),
             }
-        }
-    };
+        )
+    }
 }
 ```
 
-or:
+Or this macro will "negate" a value, using a different operation depending on which is supported (`-` taking precedence):
 
 ```rs
-use match_type::match_type;
-use std::fmt::Display;
-
-macro_rules! f {
+macro_rules! inv {
     ($e:expr) => {
-        match_type!{
-            x {
-                <D: Display> D => String: format!("{}", self),
-                _ => String: "No Display :(".to_string(),
+        match_type!(
+            $e {
+                <T: Neg> T => <T as Neg>::Output: -self,
+                <T: Not> T => <T as Not>::Output: !self,
             }
-        }
-    }
-}
-```
-
-## TODO
-
-- In the above `f` example, if the inner type variable is also named `T` then it doesn't work. Somehow the outer type variable is leaking in ._. That shouldn't happen.
-- Allow for precedence ordering such that we can fall down to a lower `<D: std::fmt::Debug> D` case in the `f` example. This should be possible with the same trick as we do the default case with (?).
-
-```rs
-match_type!{
-    x {
-        <D: Display> D => String: format!("{}", self),
-        <D: Debug> D => String: format!("{:?}", self),
-        _ => bool: false,
-    }
+        )
+    };
 }
 ```
