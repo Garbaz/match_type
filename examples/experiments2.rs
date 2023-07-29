@@ -1,119 +1,125 @@
 use std::fmt::{Debug, Display};
 
-// 1
+// Done
 
-trait Match1 {
-    type ReturnType;
-    fn m1(self) -> Self::ReturnType;
+struct __MatchTypeDone<T>(T);
+
+impl<T> __MatchTypeDone<T> {
+    fn __match_type_w1(self) -> Self {
+        self
+    }
+    fn __match_type_w2(self) -> Self {
+        self
+    }
+    fn __match_type_w3(self) -> Self {
+        self
+    }
+    fn __match_type_finish(self) -> T {
+        self.0
+    }
 }
 
-struct Wrapper1<T>(T);
+// 1
 
-impl<T: Match1> Wrapper1<T> {
-    fn w1(self) -> Done<<T as Match1>::ReturnType> {
-        Done(Match1::m1(self.0))
+trait __MatchTypeMatch1 {
+    type __MatchTypeReturnType;
+    fn __match_type_m1(self) -> Self::__MatchTypeReturnType;
+}
+
+struct __MatchTypeWrapper1<T>(T);
+
+impl<T: __MatchTypeMatch1> __MatchTypeWrapper1<T> {
+    fn __match_type_w1(self) -> __MatchTypeDone<<T as __MatchTypeMatch1>::__MatchTypeReturnType> {
+        __MatchTypeDone(__MatchTypeMatch1::__match_type_m1(self.0))
     }
 }
 
 trait Catch1 {
-    type ReturnType;
-    fn w1(self) -> Self::ReturnType;
+    type __MatchTypeReturnType;
+    fn __match_type_w1(self) -> Self::__MatchTypeReturnType;
 }
 
 impl<T> Catch1 for T {
-    type ReturnType = Wrapper2<Self>;
-    fn w1(self) -> Self::ReturnType {
-        Wrapper2(self)
+    type __MatchTypeReturnType = __MatchTypeWrapper2<Self>;
+    fn __match_type_w1(self) -> Self::__MatchTypeReturnType {
+        __MatchTypeWrapper2(self)
     }
 }
 
 // 2
 
-trait Match2 {
-    type ReturnType;
-    fn m2(self) -> Self::ReturnType;
+trait __MatchTypeMatch2 {
+    type __MatchTypeReturnType;
+    fn __match_type_m2(self) -> Self::__MatchTypeReturnType;
 }
 
-struct Wrapper2<T>(T);
+struct __MatchTypeWrapper2<T>(T);
 
-impl<T: Match2> Wrapper2<T> {
-    fn w2(self) -> Done<<T as Match2>::ReturnType> {
-        Done(Match2::m2(self.0))
+impl<T: __MatchTypeMatch2> __MatchTypeWrapper2<T> {
+    fn __match_type_w2(self) -> __MatchTypeDone<<T as __MatchTypeMatch2>::__MatchTypeReturnType> {
+        __MatchTypeDone(__MatchTypeMatch2::__match_type_m2(self.0))
     }
 }
 
 trait Catch2 {
-    type ReturnType;
-    fn w2(self) -> Self::ReturnType;
+    type __MatchTypeReturnType;
+    fn __match_type_w2(self) -> Self::__MatchTypeReturnType;
 }
 
 impl<T> Catch2 for T {
-    type ReturnType = Wrapper3<Self>;
-    fn w2(self) -> Self::ReturnType {
-        Wrapper3(self)
-    }
-}
-
-struct Done<T>(T);
-
-impl<T> Done<T> {
-    fn w1(self) -> Self {
-        self
-    }
-    fn w2(self) -> Self {
-        self
-    }
-    fn w3(self) -> Self {
-        self
-    }
-    fn fin(self) -> T {
-        self.0
+    type __MatchTypeReturnType = __MatchTypeWrapper3<Self>;
+    fn __match_type_w2(self) -> Self::__MatchTypeReturnType {
+        __MatchTypeWrapper3(self)
     }
 }
 
 // 3
 
-trait Match3 {
-    type ReturnType;
-    fn m3(self) -> Self::ReturnType;
+trait __MatchTypeMatch3 {
+    type __MatchTypeReturnType;
+    fn __match_type_m3(self) -> Self::__MatchTypeReturnType;
 }
 
-struct Wrapper3<T>(T);
+struct __MatchTypeWrapper3<T>(T);
 
-impl<T: Match3> Wrapper3<T> {
-    fn w3(self) -> Done<<T as Match3>::ReturnType> {
-        Done(Match3::m3(self.0))
+impl<T: __MatchTypeMatch3> __MatchTypeWrapper3<T> {
+    fn __match_type_w3(self) -> __MatchTypeDone<<T as __MatchTypeMatch3>::__MatchTypeReturnType> {
+        __MatchTypeDone(__MatchTypeMatch3::__match_type_m3(self.0))
     }
 }
 
 //===============================================//
 
-impl<T: Display> Match1 for T {
-    type ReturnType = String;
-    fn m1(self) -> Self::ReturnType {
+impl<T: Display> __MatchTypeMatch1 for T {
+    type __MatchTypeReturnType = String;
+    fn __match_type_m1(self) -> Self::__MatchTypeReturnType {
         format!("{}", self)
     }
 }
 
-impl<T: Debug> Match2 for Wrapper1<T> {
-    type ReturnType = String;
+impl<T: Debug> __MatchTypeMatch2 for __MatchTypeWrapper1<T> {
+    type __MatchTypeReturnType = String;
 
-    fn m2(self) -> Self::ReturnType {
+    fn __match_type_m2(self) -> Self::__MatchTypeReturnType {
         format!("{:?}", self.0)
     }
 }
 
-impl<T> Match3 for T {
-    type ReturnType = &'static str;
+impl<T> __MatchTypeMatch3 for T {
+    type __MatchTypeReturnType = &'static str;
 
-    fn m3(self) -> Self::ReturnType {
+    fn __match_type_m3(self) -> Self::__MatchTypeReturnType {
         "Sad Monkey :("
     }
 }
 
 macro_rules! m {
     ($e:expr) => {
-        Wrapper1($e).w1().w2().w3().fin()
+        (__MatchTypeWrapper1($e)
+            .__match_type_w1()
+            .__match_type_w2()
+            .__match_type_w3()
+            .__match_type_finish())
     };
 }
 

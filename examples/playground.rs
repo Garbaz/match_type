@@ -1,5 +1,3 @@
-use std::fmt::{Display, Debug};
-
 use match_type::match_type;
 
 fn f<T>(x: T) -> String {
@@ -49,7 +47,7 @@ fn main() {
     println!("{}", 1729u32);
     println!("{}", f(vec![1, 2, 3]));
 
-    let w = match_type! {
+    let _w = match_type! {
         3u32 {
             u32 => Vec<i32> : vec![1,2,3,4,5],
         }
