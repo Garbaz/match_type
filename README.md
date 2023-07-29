@@ -37,3 +37,5 @@ macro_rules! inv {
     };
 }
 ```
+
+Note that the types of the different `match_type` branches do not have to be of the same type.

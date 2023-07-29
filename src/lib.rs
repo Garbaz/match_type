@@ -145,8 +145,8 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             struct #id<T>(T);
 
             impl<T> #id<T> {
-                fn __match_type_done(self) -> () {
-                    ()
+                fn __match_type_done(self) -> ! {
+                    unimplemented!()
                 }
             }
         }
