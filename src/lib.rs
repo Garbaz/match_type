@@ -1,3 +1,36 @@
+//! This crate provides a single macro, `match_type`, which allows you to
+//! "match" on the type of an expression at compile time.
+//!
+//! As it stands, it is not possible in Rust to reflect on the type of an
+//! expression when defining a macro. However, there are situtations where we
+//! would like a macro to expand differently depending on what the type of an
+//! expression we are given is.
+//!
+//! Say for example we would like to write a macro `as_string` that turns the
+//! given expression into _some_ string representation in some way. The type of
+//! the expression might implement `Display`, or it might implement `Debug`, or
+//! both, or neither. With `match_type` we can implement such a macro easily:
+//!
+//! ```rust
+//! use match_type::match_type;
+//! use std::fmt::{Debug, Display};
+//!
+//! macro_rules! as_string {
+//!     ($e:expr) => {
+//!         match_type!(
+//!             $e {
+//!                 <T: Display> T => String: format!("{}", self),
+//!                 <T: Debug>   T => String: format!("{:?}", self),
+//!                 _              => &'static str: stringify!($e),
+//!             }
+//!         )
+//!     };
+//! }
+//! ```
+//!
+//! For more information, see the documentation of `match_type`, and take a look
+//! at the [README.md](https://github.com/Garbaz/match_type#readme) on Github.
+
 use proc_macro as pm;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -36,7 +69,6 @@ struct Match {
 
 impl Parse for Match {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        // input.parse::<Token![match]>()?;
         let expr = Expr::parse_without_eager_brace(input)?;
 
         let content;
@@ -50,6 +82,106 @@ impl Parse for Match {
     }
 }
 
+/// Allows you to match on the type of an expression.
+/// # General Syntax
+///  
+/// _ScrutineeExpr_ `{`\
+/// &nbsp;&nbsp;&nbsp;&nbsp;(_Generics_? _MatchType_ `=>` _RhsType_ `:`
+/// _RhsExpr_ `,`)*\
+/// `}`
+///
+/// The type of the _ScrutineeExpr_ is what is matched on. The _Generics_ and
+/// _MatchType_ define the match pattern of a match arm. The _RhsExpr_ is what
+/// expression the whole `match_type` block expands to in case of a match, and
+/// _RhsType_ is the type of _RhsExpr_.
+///
+/// To refer back to the value of the _ScrutineeExpr_ inside _RhsExpr_, use
+/// `self`. Also unlike normal `match`, it is not possible to refer to, i.e.
+/// capture, variables outside the context of the `match_type` block.
+///
+/// # Intended Usage
+///
+/// Generally this macro is only of much use inside the definition of another
+/// macro, since in such a context it it not normally possible to reflect on the
+/// types of expressions. For example:
+///
+/// ```rust
+/// # use match_type::match_type;
+/// # use std::fmt::{Debug, Display};
+///
+/// macro_rules! as_string {
+///     ($e:expr) => {
+///         match_type!(
+///             $e {
+///                 <T: Display> T => String: format!("{}", self),
+///                 <T: Debug>   T => String: format!("{:?}", self),
+///                              _ => String: stringify!($e).into(),
+///             }
+///         )
+///     };
+/// }
+/// ```
+///
+/// Note that the type reflection happens during compile time and before any
+/// surrounding monomorphization. I.e. if I were to use `as_string` like this:
+///
+/// ```rust
+/// # use match_type::match_type;
+/// # use std::fmt::{Debug, Display};
+/// #
+/// # macro_rules! as_string {
+/// #     ($e:expr) => {
+/// #         match_type!(
+/// #             $e {
+/// #                 <T: Display> T => String: format!("{}", self),
+/// #                 <T: Debug>   T => String: format!("{:?}", self),
+/// #                              _ => String: stringify!($e).into(),
+/// #             }
+/// #         )
+/// #     };
+/// # }
+///
+/// fn f<T>(x: T) -> String {
+///     as_string!(x)
+/// }
+/// ```
+///
+/// , then this function will always return the string "x", even if the actual
+/// type `T` for which we end up monomorphizing `f` does implement `Display` or
+/// `Debug`.
+///
+/// # Differences with `match`
+///
+/// ## `_` not required
+///
+/// Contrary to the normal `match` expression in Rust, it is allowed with
+/// `match_type` not to have a catch all pattern `_` at the end. In such a case,
+/// if the expression being matched on has a type that matches none of the match
+/// arms, an error will be thrown at compile time:
+///
+/// ```text
+/// no method named `__match_type_arm_found` found [...]
+/// ```
+///
+/// ## Arms with different types
+///
+/// Since a `match_type` block is not an expression until after expansion, it's
+/// arms do not have to have the same type. For a somewhat contrived example:
+///
+/// ```rust
+/// # use match_type::match_type;
+///
+/// macro_rules! opposite {
+///     ($e:expr) => {
+///         match_type!(
+///             $e {
+///                 <T: Neg> T => <T as Neg>::Output: -self,
+///                 <T: Not> T => <T as Not>::Output: !self,
+///             }
+///         )
+///     };
+/// }
+/// ```
 #[proc_macro]
 pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
     let input = parse_macro_input!(input as Match);
@@ -58,8 +190,10 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
         format!("{}{}", prefix, i).parse::<TokenStream>().unwrap()
     }
 
-    let done = {
-        let ids = (1..input.match_arms.len()).map(|i| numbered_id("__match_type_w", i));
+    let boilerplate = {
+        let ids: Vec<_> = (0..input.match_arms.len())
+            .map(|i| numbered_id("__match_type_arm", i))
+            .collect();
         quote! {
             struct __MatchTypeDone<T>(T);
 
@@ -67,9 +201,21 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
                 #(fn #ids(self) -> Self {
                     self
                 })*
-                fn __match_type_done(self) -> T {
+                fn __match_type_arm_found(self) -> T {
                     self.0
                 }
+            }
+
+            struct __MatchTypeWrapper<T>(T);
+
+            trait __MatchTypeCatch<T> {
+                #(fn #ids(self) -> Self;)*
+            }
+
+            impl<T> __MatchTypeCatch<T> for __MatchTypeWrapper<T> {
+                #(fn #ids(self) -> Self {
+                    self
+                })*
             }
         }
     };
@@ -79,42 +225,24 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
     let mut add_arm =
         |i: usize, generics: &Generics, match_type: &Type, expr_type: &Type, expr: &Expr| {
             let match_i = numbered_id("__MatchTypeMatch", i);
-            let m_i = numbered_id("__match_type_m", i);
-            let wrapper_i = numbered_id("__MatchTypeWrapper", i);
-            let w_i = numbered_id("__match_type_w", i);
-            let catch_i = numbered_id("__MatchTypeCatch", i);
-            let wrapper_i_plus_1 = numbered_id("__MatchTypeWrapper", i + 1);
+            let arm_i = numbered_id("__match_type_arm", i);
 
             arms.extend(quote! {
                 trait #match_i {
                     type __MatchTypeReturnType;
-                    fn #m_i(self) -> Self::__MatchTypeReturnType;
+                    fn __match_type_match(self) -> Self::__MatchTypeReturnType;
                 }
 
                 impl #generics #match_i for #match_type {
                     type __MatchTypeReturnType = #expr_type;
-                    fn #m_i(self) -> Self::__MatchTypeReturnType {
+                    fn __match_type_match(self) -> Self::__MatchTypeReturnType {
                         #expr
                     }
                 }
 
-                struct #wrapper_i<T>(T);
-
-                impl<T: #match_i> #wrapper_i<T> {
-                    fn #w_i(self) -> __MatchTypeDone<<T as #match_i>::__MatchTypeReturnType> {
-                        __MatchTypeDone(#match_i::#m_i(self.0))
-                    }
-                }
-
-                trait #catch_i {
-                    type __MatchTypeReturnType;
-                    fn #w_i(self) -> Self::__MatchTypeReturnType;
-                }
-
-                impl<T> #catch_i for #wrapper_i<T> {
-                    type __MatchTypeReturnType = #wrapper_i_plus_1<T>;
-                    fn #w_i(self) -> Self::__MatchTypeReturnType {
-                        #wrapper_i_plus_1(self.0)
+                impl<T: #match_i> __MatchTypeWrapper<T> {
+                    fn #arm_i(self) -> __MatchTypeDone<<T as #match_i>::__MatchTypeReturnType> {
+                        __MatchTypeDone(#match_i::__match_type_match(self.0))
                     }
                 }
             });
@@ -139,36 +267,21 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
         }
     }
 
-    let final_wrapper: TokenStream = {
-        let id = numbered_id("__MatchTypeWrapper", input.match_arms.len());
-        quote! {
-            struct #id<T>(T);
-
-            impl<T> #id<T> {
-                fn __match_type_done(self) -> ! {
-                    unimplemented!()
-                }
-            }
-        }
-    };
-
     let expr = input.expr;
     let funcs = (0..input.match_arms.len())
         .into_iter()
-        .map(|i| numbered_id("__match_type_w", i));
+        .map(|i| numbered_id("__match_type_arm", i));
 
     quote! {
         {
-            #done
+            #boilerplate
             #arms
-            #final_wrapper
 
-            __MatchTypeWrapper0(#expr)
+            __MatchTypeWrapper(#expr)
             #(
                 .#funcs()
             )*
-            .__match_type_done()
-
+            .__match_type_arm_found()
         }
     }
     .into()

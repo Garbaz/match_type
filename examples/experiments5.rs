@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Display};
 
-struct D<T>(T);
+struct Done<T>(T);
 
-impl<T> D<T> {
+impl<T> Done<T> {
     fn arm0(self) -> Self {
         self
     }
@@ -17,15 +17,15 @@ impl<T> D<T> {
     }
 }
 
-struct W<T>(T);
+struct Wrapper<T>(T);
 
-trait C<T> {
+trait Catch<T> {
     fn arm0(self) -> Self;
     fn arm1(self) -> Self;
     fn arm2(self) -> Self;
 }
 
-impl<T> C<T> for W<T> {
+impl<T> Catch<T> for Wrapper<T> {
     fn arm0(self) -> Self {
         self
     }
@@ -39,35 +39,33 @@ impl<T> C<T> for W<T> {
     }
 }
 
-impl W<A> {
-    fn arm0(self) -> D<&'static str> {
-        D("Wohoo!")
+impl Wrapper<A> {
+    fn arm0(self) -> Done<&'static str> {
+        Done("Wohoo!")
     }
 }
 
-impl<T: Display> W<T> {
-    fn arm1(self) -> D<String> {
-        D(format!("{}", self.0))
+impl<T: Display> Wrapper<T> {
+    fn arm1(self) -> Done<String> {
+        Done(format!("{}", self.0))
     }
 }
 
-impl<T: Debug> W<T> {
-    fn arm2(self) -> D<String> {
-        D(format!("{:?}", self.0))
+impl<T: Debug> Wrapper<T> {
+    fn arm2(self) -> Done<String> {
+        Done(format!("{:?}", self.0))
     }
 }
 
 struct A;
-
-struct B;
 
 fn main() {
     let x = A;
     let y = 1729;
     let z = vec![1, 2, 3];
 
-    println!("{}", W(x).arm0().arm1().arm2().match_arm_found());
-    println!("{}", W(y).arm0().arm1().arm2().match_arm_found());
-    println!("{}", W(z).arm0().arm1().arm2().match_arm_found());
+    println!("{}", Wrapper(x).arm0().arm1().arm2().match_arm_found());
+    println!("{}", Wrapper(y).arm0().arm1().arm2().match_arm_found());
+    println!("{}", Wrapper(z).arm0().arm1().arm2().match_arm_found());
     // println!("{}", W(B).arm0().arm1().arm2().match_arm_found());
 }

@@ -2,13 +2,16 @@
 name = "match_type"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Match on the type of an expression at compile time."
+repository = "https://github.com/Garbaz/match_type"
+
 
 [lib]
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.66"
-quote = "1.0.32"
-rand = "0.8.5"
-syn = { version = "2.0.27", features = ["extra-traits", "full"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["extra-traits", "full"] }
 
