@@ -44,7 +44,7 @@ Note that the right hand sides of the  different match arms do not have to be of
 
 ## Performance
 
-With `opt-level` of at least `1`, e.g. in the default `release` profile, the whole expansion of `match_type` should be inlined away to the point that the assembly output is the same as if you had written the right hand side of the matching arm directly. I.e. `match_type` has zero production runtime overhead.
+With `opt-level` of at least `1`, e.g. in the default `release` profile, the whole expansion of `match_type` should be inlined away to the point that the assembly output is the same as if you had written the right hand side of the matching arm directly. I.e. `match_type` should have zero production runtime overhead.
 
 ## How?
 
