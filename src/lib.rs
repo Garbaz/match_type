@@ -28,7 +28,7 @@
 //! }
 //! ```
 //!
-//! For more information, see the documentation of `match_type`, and take a look
+//! For more information, see the documentation of [`match_type`](macro.match_type.html), and take a look
 //! at the [README.md](https://github.com/Garbaz/match_type#readme) on Github.
 
 use proc_macro as pm;
@@ -83,7 +83,7 @@ impl Parse for Match {
 }
 
 /// Allows you to match on the type of an expression.
-/// # General Syntax
+/// # Syntax
 ///  
 /// _ScrutineeExpr_ `{`\
 /// &nbsp;&nbsp;&nbsp;&nbsp;(_Generics_? _MatchType_ `=>` _RhsType_ `:`
@@ -182,6 +182,10 @@ impl Parse for Match {
 ///     };
 /// }
 /// ```
+/// 
+/// # Performance & Implementation
+/// 
+/// See the [README.md](https://github.com/Garbaz/match_type#readme) on Github.
 #[proc_macro]
 pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
     let input = parse_macro_input!(input as Match);
