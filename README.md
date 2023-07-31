@@ -6,7 +6,7 @@ Match on the type of an expression at compile time.
 
 For example the following macro will expand to a different `String` expression depending on what the type of the input expression is:
 
-```rs
+```rust
 struct A(i64,i32,i16,i8);
 struct B(f64,f32,bool);
 
@@ -27,7 +27,7 @@ macro_rules! stringify {
 
 Or this macro will give us the "opposite" of a value, using a different operation depending on which is supported (with `-` taking precedence in case both `!` and `-` are):
 
-```rs
+```rust
 macro_rules! opposite {
     ($e:expr) => {
         match_type!(
