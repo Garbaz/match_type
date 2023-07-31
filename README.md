@@ -1,6 +1,6 @@
 # Match Type
 
-‖ [__Docs.rs__](https://docs.rs/match_type/latest/pronto_graphics/) ‖ [__Lib.rs__](https://lib.rs/crates/match_type) ‖ [__Crates.io__](https://crates.io/crates/match_type/) ‖
+‖ [__Docs.rs__](https://docs.rs/match_type/latest/match_type/) ‖ [__Lib.rs__](https://lib.rs/crates/match_type) ‖ [__Crates.io__](https://crates.io/crates/match_type/) ‖
 
 Match on the type of an expression at compile time.
 
