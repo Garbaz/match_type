@@ -36,7 +36,6 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{braced, parse::Parse, parse_macro_input, Expr, Generics, Token, Type};
 
-#[derive(Debug)]
 struct MatchArm {
     generics: Generics,
     match_type: Type,
@@ -61,7 +60,6 @@ impl Parse for MatchArm {
     }
 }
 
-#[derive(Debug)]
 struct Match {
     expr: Expr,
     match_arms: Vec<MatchArm>,
@@ -182,9 +180,9 @@ impl Parse for Match {
 ///     };
 /// }
 /// ```
-/// 
+///
 /// # Performance & Implementation
-/// 
+///
 /// See the [README.md](https://github.com/Garbaz/match_type#readme) on Github.
 #[proc_macro]
 pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
@@ -202,9 +200,12 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             struct __MatchTypeDone<T>(T);
 
             impl<T> __MatchTypeDone<T> {
-                #(fn #ids(self) -> Self {
+                #(
+                    #[inline(always)]
+                    fn #ids(self) -> Self {
                     self
                 })*
+                #[inline(always)]
                 fn __match_type_arm_found(self) -> T {
                     self.0
                 }
@@ -213,11 +214,16 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             struct __MatchTypeWrapper<T>(T);
 
             trait __MatchTypeCatch<T> {
-                #(fn #ids(self) -> Self;)*
+                #(
+                    #[inline(always)]
+                    fn #ids(self) -> Self;
+                )*
             }
 
             impl<T> __MatchTypeCatch<T> for __MatchTypeWrapper<T> {
-                #(fn #ids(self) -> Self {
+                #(
+                    #[inline(always)]
+                    fn #ids(self) -> Self {
                     self
                 })*
             }
@@ -234,17 +240,20 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             arms.extend(quote! {
                 trait #match_i {
                     type __MatchTypeReturnType;
+                    #[inline(always)]
                     fn __match_type_match(self) -> Self::__MatchTypeReturnType;
                 }
 
                 impl #generics #match_i for #match_type {
                     type __MatchTypeReturnType = #expr_type;
+                    #[inline(always)]
                     fn __match_type_match(self) -> Self::__MatchTypeReturnType {
                         #expr
                     }
                 }
 
                 impl<T: #match_i> __MatchTypeWrapper<T> {
+                    #[inline(always)]
                     fn #arm_i(self) -> __MatchTypeDone<<T as #match_i>::__MatchTypeReturnType> {
                         __MatchTypeDone(#match_i::__match_type_match(self.0))
                     }
