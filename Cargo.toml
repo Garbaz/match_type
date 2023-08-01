@@ -1,6 +1,6 @@
 [package]
 name = "match_type"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 license = "MIT"
 description = "Match on the type of an expression at compile time."

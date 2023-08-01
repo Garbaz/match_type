@@ -10,7 +10,7 @@ For example the following macro will expand to a different `String` expression d
 struct A(i64,i32,i16,i8);
 struct B(f64,f32,bool);
 
-macro_rules! stringify {
+macro_rules! as_string {
     ($e:expr) => {
         match_type!(
             $e {
