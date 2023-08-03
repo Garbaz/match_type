@@ -56,7 +56,7 @@ struct A;
 struct B;
 struct C;
 
-macro_rules! stringify {
+macro_rules! as_string {
     ($e:expr) => {
         match_type!(
             $e {
@@ -96,7 +96,43 @@ macro_rules! inv {
     };
 }
 
+macro_rules! as_string2 {
+    ($e:expr) => {
+        match_type!(
+        $e {
+            A => String: "It's an A :O".to_string(),
+            _ => String: match_type!(
+                self {
+                B => String: "B it is ^^".to_string(),
+                _ => String: match_type!(
+                    self {
+                    <T : Display> T => String: format!("{}", self),
+                    <T : Debug> T => String: format!("{:?}", self),
+                    _ => String : "<<Sad Monkey :(>>".to_string(),
+                    }
+                )
+                })
+            }
+        )
+    }
+}
+
 fn main() {
+    // let x = vec![1,2,3];
+
+    println!("{}", as_string2!(C));
+
+    // match_type!(
+    //     x {
+    //         Vec<i32> => String : "Hello".into(),
+    //         _ => f64 : match_type!(
+    //             self {
+    //                 Vec<i32> => String: "Hello".into()
+    //             }
+    //         )
+    //     }
+    // );
+
     println!("{}", inv!(true));
     println!("{}", inv!(17));
     // println!("{}", sqrt!(1729u32));
@@ -104,11 +140,11 @@ fn main() {
     // println!("{}", sqrt!(1729.0f32));
     // println!("{}", sqrt!(1729.0f64));
     
-    // println!("{:?}", stringify!(A));
-    // println!("{:?}", stringify!(B));
-    // println!("{:?}", stringify!(1729));
-    // println!("{:?}", stringify!(vec![1,2,3,4]));
-    // println!("{:?}", stringify!(C));
+    // println!("{:?}", as_string!(A));
+    // println!("{:?}", as_string!(B));
+    // println!("{:?}", as_string!(1729));
+    // println!("{:?}", as_string!(vec![1,2,3,4]));
+    // println!("{:?}", as_string!(C));
     // let x = 10;
     // println!("{}", ((x as f64).sqrt() as u8))
 

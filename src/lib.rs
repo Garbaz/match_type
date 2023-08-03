@@ -153,7 +153,7 @@ impl Parse for Match {
 /// ## `_` not required
 ///
 /// Contrary to the normal `match` expression in Rust, it is allowed with
-/// `match_type` not to have a catch all pattern `_` at the end. In such a case,
+/// `match_type` not to have a match-all pattern `_` at the end. In such a case,
 /// if the expression being matched on has a type that matches none of the match
 /// arms, an error will be thrown at compile time:
 ///
