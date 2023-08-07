@@ -139,7 +139,7 @@ fn main() {
     // println!("{}", sqrt!(1729i16));
     // println!("{}", sqrt!(1729.0f32));
     // println!("{}", sqrt!(1729.0f64));
-    
+
     // println!("{:?}", as_string!(A));
     // println!("{:?}", as_string!(B));
     // println!("{:?}", as_string!(1729));

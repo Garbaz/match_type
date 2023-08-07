@@ -84,7 +84,7 @@ impl<T: Debug> MatchTypeMatch1 for MatchTypeWrapper1<MatchTypeWrapper0<T>> {
     type MatchTypeReturnType = String;
 
     fn match_type_m1(self) -> Self::MatchTypeReturnType {
-        format!("{:?}", self.0.0)
+        format!("{:?}", self.0 .0)
     }
 }
 

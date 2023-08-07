@@ -215,7 +215,6 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
 
             trait __MatchTypeCatch<T> {
                 #(
-                    #[inline(always)]
                     fn #ids(self) -> Self;
                 )*
             }
@@ -240,7 +239,6 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
             arms.extend(quote! {
                 trait #match_i {
                     type __MatchTypeReturnType;
-                    #[inline(always)]
                     fn __match_type_match(self) -> Self::__MatchTypeReturnType;
                 }
 
@@ -281,9 +279,7 @@ pub fn match_type(input: pm::TokenStream) -> pm::TokenStream {
     }
 
     let expr = input.expr;
-    let funcs = (0..input.match_arms.len())
-        .into_iter()
-        .map(|i| numbered_id("__match_type_arm", i));
+    let funcs = (0..input.match_arms.len()).map(|i| numbered_id("__match_type_arm", i));
 
     quote! {
         {
